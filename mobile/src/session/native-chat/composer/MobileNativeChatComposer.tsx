@@ -241,7 +241,11 @@ export function MobileNativeChatComposer({
   return (
     <View>
       {menu.rows.length > 0 ? (
-        <MobileNativeChatComposerMenu rows={menu.rows} onPick={menu.pick} />
+        <MobileNativeChatComposerMenu
+          rows={menu.rows}
+          onPick={menu.pick}
+          nestedScrollEnabled={editSession ? true : undefined}
+        />
       ) : null}
       <View style={styles.composerInset} testID="native-chat-composer-inset">
         <View style={styles.bar} testID="native-chat-composer">
