@@ -531,8 +531,7 @@ it('hands off the reduced saved chat after clear and rewind, budgets only the st
   await append('PRE_CLEAR_SECRET')
   await journal.context.clear(
     { operationId: 'pr-31782-clear', afterFence: fence, clearedAt: rig.clock.now },
-    receipt,
-    'pr-31782-clear'
+    receipt
   )
   await append('EARLY_SAVED_MARKER')
   for (let index = 0; index < 205; index++) {
