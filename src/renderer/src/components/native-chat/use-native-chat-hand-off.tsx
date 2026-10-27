@@ -3,6 +3,7 @@ import { translate } from '@/i18n/i18n'
 import { withTimeout } from '../../../../shared/promise-timeout-fallback'
 import { useCallback, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { useAppStore } from '@/store'
+import { structuredChatTabById } from '@/lib/structured-chat-tab-index'
 import { useStructuredChatTabConversationName } from '@/runtime/structured-conversation-name'
 import { AgentSessionContinuationDialog } from '@/components/agent-session-continuation/AgentSessionContinuationDialog'
 import {
@@ -74,7 +75,7 @@ export function useNativeChatHandOff({
   }, [intentKey, retire])
   const chatTab = useAppStore((state) =>
     directory
-      ? state.unifiedTabsByWorktree[directory.worktreeId]?.find((tab) => tab.id === pane.tabId)
+      ? structuredChatTabById(state.unifiedTabsByWorktree, directory.worktreeId, pane.tabId)
       : undefined
   )
   const conversationName = useStructuredChatTabConversationName(chatTab)
