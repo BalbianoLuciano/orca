@@ -31,6 +31,10 @@ import {
   restTestSend,
   type RestTestRig
 } from '../../../native-chat/agent-session-wire/structured-agent-session-rest-test-rig'
+import {
+  editPersistedTestAgentSessionStore,
+  readPersistedTestAgentSessionStore
+} from '../../agent-session-record-store-test-harness'
 import { OrcaRuntimeService } from '../../orca-runtime'
 import type { RpcResponse } from '../core'
 import { RpcDispatcher } from '../dispatcher'
@@ -780,4 +784,42 @@ it('hands off the reduced saved chat after clear and rewind, budgets only the st
       force: true
     })
   }
+})
+
+it('hands off a readable saved conversation without granting its invalid execution lease authority', async () => {
+  await restingChat()
+  const { cursor } = await rig.host.journalSnapshot(SESSION)
+  await rig.host.flushAllStreamedEvents()
+  await editPersistedTestAgentSessionStore(rig.root, (persisted) => {
+    Object.assign(persisted.records[SESSION].lease, { minimumNextFence: 'bad' })
+  })
+  await rig.restart()
+  setStructuredAgentSessionHost(rig.host)
+  expect(rig.store.getRecord(SESSION)).toBeNull()
+  expect(rig.store.getConversation(SESSION)?.location.workspaceId).toBe('workspace-1')
+  const saved = (await readPersistedTestAgentSessionStore(rig.root)).records[SESSION]
+  const params = { sessionId: SESSION, workspaceId: 'workspace-1', expectedCursor: cursor }
+  const result = await rig.host.continuationContext(params)
+  expect(result).toMatchObject({
+    status: 'current',
+    capturedText: expect.stringContaining('hello')
+  })
+  if (result.status !== 'current' || !result.transcriptPath) {
+    throw new Error('Saved conversation snapshot missing')
+  }
+  expect(await readFile(result.transcriptPath, 'utf8')).toContain('hello')
+  expect(await call('agentSession.continuationContext', params)).toMatchObject([
+    { ok: true, result }
+  ])
+  for (const stale of [
+    { ...params, workspaceId: 'other' },
+    { ...params, expectedCursor: { ...cursor, epoch: 'other' } },
+    { ...params, expectedCursor: { ...cursor, sequence: cursor.sequence + 1 } }
+  ]) {
+    expect(await rig.host.continuationContext(stale)).toEqual({ status: 'superseded' })
+  }
+  expect(rig.store.getRecord(SESSION)).toBeNull()
+  expect((await readPersistedTestAgentSessionStore(rig.root)).records[SESSION]).toEqual(saved)
+  expect(rig.adapter.acquire).not.toHaveBeenCalled()
+  expect(rig.adapter.dispatch).not.toHaveBeenCalled()
 })
