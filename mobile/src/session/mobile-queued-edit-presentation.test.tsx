@@ -2,7 +2,7 @@ import { mobileQueuedEditHarness } from './mobile-queued-edit-hook.test-fixture'
 import { createElement, type ReactNode } from 'react'
 import { act } from 'react-test-renderer'
 import { describe, expect, it, vi } from 'vitest'
-import { TextInput } from 'react-native'
+import { ScrollView, TextInput } from 'react-native'
 import { ActionSheetModal } from '../components/ActionSheetModal'
 import { MobileQueuedMessageComposerContext } from './mobile-queued-message-composer-context'
 import { MobileNativeChatQueuedMessages } from './native-chat/input/MobileNativeChatQueuedMessages'
@@ -161,7 +161,7 @@ describe('phone inline editor presentation', () => {
     const style = (value: unknown): Record<string, unknown> => Object.assign({}, ...[value].flat())
     const queue = () => root().findByType(MobileNativeChatQueuedMessages)
     const scroll = () =>
-      queue().find((node) => node.type === 'ScrollView' && node.props.onContentSizeChange)
+      queue().find((node) => node.type === ScrollView && node.props.onContentSizeChange)
     const box = () => root().findByProps({ testID: 'queued-box' })
     const editor = () => root().findByType(MobileQueuedMessageComposer)
     const bottom = () => root().findByType(MobileNativeChatDraftComposer)
@@ -180,7 +180,7 @@ describe('phone inline editor presentation', () => {
       field.props.onChangeText('/')
       field.props.onSelectionChange({ nativeEvent: { selection: { start: 1, end: 1 } } })
     })
-    const menuScroll = root().findByType(MobileNativeChatComposerMenu).findByType('ScrollView')
+    const menuScroll = root().findByType(MobileNativeChatComposerMenu).findByType(ScrollView)
     expect(style(menuScroll.props.style).maxHeight).toBe(300)
     expect(menuScroll.props.nestedScrollEnabled).toBe(true)
     expect(menuScroll.props.keyboardShouldPersistTaps).toBe('always')
@@ -213,7 +213,7 @@ describe('phone inline editor presentation', () => {
         .findByType(TextInput)
         .props.onSelectionChange({ nativeEvent: { selection: { start: 1, end: 1 } } })
     })
-    const ordinaryMenu = bottom().findByType(MobileNativeChatComposerMenu).findByType('ScrollView')
+    const ordinaryMenu = bottom().findByType(MobileNativeChatComposerMenu).findByType(ScrollView)
     expect(style(ordinaryMenu.props.style).maxHeight).toBe(300)
     expect(ordinaryMenu.props.nestedScrollEnabled).toBeFalsy()
     expect(
