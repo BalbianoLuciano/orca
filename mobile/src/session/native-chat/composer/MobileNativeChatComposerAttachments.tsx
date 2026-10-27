@@ -1,4 +1,4 @@
-import { isRenderableImageUri } from '../../mobile-native-chat-image-preview'
+import { isRenderableImageUri } from '../visual/mobile-native-chat-image-preview'
 import {
   ActivityIndicator,
   Image,
